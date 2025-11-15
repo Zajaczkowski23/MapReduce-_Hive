@@ -24,6 +24,9 @@ public class Main {
         job.setJarByClass(Main.class);
 
         job.setMapperClass(OrdersMapper.class);
+
+        job.setCombinerClass(OrdersCombiner.class);
+
         job.setReducerClass(OrdersReducer.class);
 
         job.setMapOutputKeyClass(Text.class);

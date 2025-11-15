@@ -21,7 +21,7 @@ public class OrdersMapper extends Mapper<LongWritable, Text, Text, Text> {
             return;
         }
 
-        String[] cols = line.split("\t", -1);
+        String[] cols = line.split(",", -1);
         if (cols.length != 7) {
             context.getCounter("ORDERS_MAPPER", "MALFORMED_LINE").increment(1);
             return;
@@ -35,13 +35,11 @@ public class OrdersMapper extends Mapper<LongWritable, Text, Text, Text> {
         String paymentType = cols[5].trim();
         String status = cols[6].trim();
 
-        // Basic validation
         if (restaurantId.isEmpty() || orderId.isEmpty()) {
             context.getCounter("ORDERS_MAPPER", "MISSING_ID").increment(1);
             return;
         }
 
-        // Parse numeric fields and date; if parse fails -> skip line
         int itemsCount;
         double totalPrice;
         LocalDateTime orderDate;
