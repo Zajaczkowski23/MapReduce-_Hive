@@ -1,25 +1,3 @@
-#!/bin/bash
-
-if [ "$#" -ne 3 ]; then
-  echo "Usage: $0 <mr_output_path> <datasource4_path> <final_output_path>"
-  exit 1
-fi
-
-MR_OUTPUT=$1
-DS4_PATH=$2
-FINAL_OUTPUT=$3
-
-echo "=== RUN HIVE JOB ==="
-echo "MR output: $MR_OUTPUT"
-echo "Datasource4: $DS4_PATH"
-echo "Final output: $FINAL_OUTPUT"
-
-# usuwa poprzednie dane
-hdfs dfs -rm -r -f $FINAL_OUTPUT
-
-beeline -u "jdbc:hive2://localhost:10000/default" -n hadoop --hivevar mr_output_path=$MR_OUTPUT \
-    --hivevar ds4_path=$DS4_PATH --hivevar final_output_path=$FINAL_OUTPUT <<EOF
-
 DROP TABLE IF EXISTS orders_mr;
 DROP TABLE IF EXISTS datasource4;
 DROP TABLE IF EXISTS final_result;
@@ -34,7 +12,7 @@ CREATE EXTERNAL TABLE orders_mr (
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\t'
 STORED AS TEXTFILE
-LOCATION '\${mr_output_path}';
+LOCATION '${mr_output_path}';
 
 CREATE EXTERNAL TABLE datasource4 (
   product_id STRING,
@@ -44,13 +22,14 @@ CREATE EXTERNAL TABLE datasource4 (
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ','
 STORED AS TEXTFILE
-LOCATION '\${ds4_path}';
+LOCATION '${ds4_path}';
 
 CREATE TABLE final_result (
     json_line STRING
 )
 STORED AS TEXTFILE
-LOCATION '\${final_output_path}';
+LOCATION '${final_output_path}';
+
 
 INSERT INTO TABLE final_result
 SELECT
@@ -66,6 +45,4 @@ SELECT
     ) AS json_line
 FROM orders_mr o
 JOIN datasource4 d
-ON TRIM(o.product_id) = TRIM(d.product_id);
-
-EOF
+ON o.product_id = d.product_id;
